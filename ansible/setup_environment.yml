@@ -39,7 +39,7 @@
     - openshift_setup
     - env_hacks
     - ansible_service_broker_setup
-    - demo_prep
+    - { role: demo_prep, when: enable_demo == True }
   post_tasks:
     - set_fact:
         msg: |

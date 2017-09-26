@@ -34,7 +34,7 @@
     - { role: ssl_setup, when: use_ssl == True }
     - { role: "{{ cluster }}_setup", reset_cluster: True }
     - ansible_service_broker_setup
-    - demo_prep
+    - { role: demo_prep, when: enable_demo == True }
   post_tasks:
     - set_fact:
         msg: |
