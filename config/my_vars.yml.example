@@ -56,5 +56,3 @@ dockerhub_org: ansibleplaybookbundle
 # aws_region: ca-central-1
 # aws_ami_id: ami-9062d0f4
 
-# use this to disable running the demo project
-# enable_demo: false
