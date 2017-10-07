@@ -1,14 +1,14 @@
 docekrhub_org: ansibleplaybookbundle
 aws_apbs:
-  - "dh-{{ dockerhub_org }}-dynamodb-apb-latest"
-  - "dh-{{ dockerhub_org }}-elasticache-apb-latest"
-  - "dh-{{ dockerhub_org }}-emr-apb-latest"
-  - "dh-{{ dockerhub_org }}-r53-apb-latest"
-  - "dh-{{ dockerhub_org }}-mysql-rds-apb-latest"
-  - "dh-{{ dockerhub_org }}-redshift-apb-latest"
-  - "dh-{{ dockerhub_org }}-s3-apb-latest"
-  - "dh-{{ dockerhub_org }}-sns-apb-latest"
-  - "dh-{{ dockerhub_org }}-sqs-apb-latest"
+  - "dh-{{ dockerhub_org }}-dynamodb-apb"
+  - "dh-{{ dockerhub_org }}-elasticache-apb"
+  - "dh-{{ dockerhub_org }}-emr-apb"
+  - "dh-{{ dockerhub_org }}-r53-apb"
+  - "dh-{{ dockerhub_org }}-mysql-rds-apb"
+  - "dh-{{ dockerhub_org }}-redshift-apb"
+  - "dh-{{ dockerhub_org }}-s3-apb"
+  - "dh-{{ dockerhub_org }}-sns-apb"
+  - "dh-{{ dockerhub_org }}-sqs-apb"
 role_path: "../roles/aws_apb_setup"
 oc_cmd: oc
 cluster_user: admin
