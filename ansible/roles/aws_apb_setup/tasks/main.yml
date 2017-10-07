@@ -1,0 +1,99 @@
+---
+  - name: Create CloudFormation Stack role
+    iam_role:
+      name: "{{ iam_rolename }}"
+      state: present
+      managed_policy:
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      assume_role_policy_document:
+        Version: '2012-10-17'
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+    register: cloudformation_stack_role
+    delegate_to: 127.0.0.1
+    become: false
+  - name: Create IAM user
+    iam:
+      iam_type: user
+      name: "{{ iam_username }}"
+      state: present
+      access_key_state: create
+    register: iam_output
+    delegate_to: 127.0.0.1
+    become: false
+  - name: remove existing access keys
+    iam:
+      iam_type: user
+      name: "{{ iam_username }}"
+      state: present
+      access_key_ids: "{{ iam_output['keys'].keys() }}"
+      access_key_state: remove
+      key_count: 0
+    when: iam_output.changed == false
+    delegate_to: 127.0.0.1
+    become: false
+  - name: Create new access key
+    iam:
+      iam_type: user
+      name: "{{ iam_username }}"
+      state: present
+      access_key_state: create
+    register: iam_output
+    when: iam_output.changed == false
+    delegate_to: 127.0.0.1
+    become: false
+  - name: Generate IAM policy temporary json file
+    template:
+      src: "{{ role_path }}/templates/asb-user-policy.json.j2"
+      dest: "/tmp/asb-user-policy.json"
+    delegate_to: 127.0.0.1
+    become: false
+  - name: Attach IAM policy
+    iam_policy:
+      iam_type: user
+      iam_name: "{{ iam_username }}"
+      policy_name: "ansible-service-broker-deployment-policy"
+      state: present
+      policy_document: "/tmp/asb-user-policy.json"
+    delegate_to: 127.0.0.1
+    become: false
+  - name: Login to openshift as {{ cluster_user }}
+    shell: "{{ oc_cmd }} login -u {{ cluster_user }} -p {{ cluster_user_password }} {{ cluster_url }} --insecure-skip-tls-verify=true"
+  - name: set project to {{ asb_project }}
+    shell: "{{ oc_cmd }} project {{ asb_project }}"
+  - name: Generate credential file
+    template:
+      src: "{{ role_path }}/templates/aws_credentials_secret.yml.j2"
+      dest: "/tmp/aws_credentials_secret.yml"
+  - name: create/update credential secret
+    shell: "{{ oc_cmd }} create -f /tmp/aws_credentials_secret.yml || {{ oc_cmd }} replace -f /tmp/aws_credentials_secret.yml ; rm /tmp/aws_credentials_secret.yml"
+  - name: get asb config
+    shell: "{{ oc_cmd }} get configmap broker-config -o yaml"
+    register: asb_config
+  - name: save config to file
+    copy:
+      content: "{{ asb_config.stdout }}"
+      dest: /tmp/asb_config.yml
+  - name: inject secrets section into config
+    lineinfile:
+      path: /tmp/asb_config.yml
+      regexp: '^    secrets:'
+      line: '    secrets:'
+      insertafter: "^  broker-config:"
+  - name: inject apb-secret mappings
+    lineinfile:
+      path: /tmp/asb_config.yml
+      regexp: '^    - {apb_name: {{ item }}, secret: aws-credentials, title: aws-credentials}'
+      insertafter: '^    secrets:'
+      line: '    - {apb_name: {{ item }}, secret: aws-credentials, title: aws-credentials}'
+    register: asb_config_file
+    with_items: "{{ aws_apbs }}"
+  - name: replace broker config
+    shell: "{{ oc_cmd }} replace -f /tmp/asb_config.yml"
+    when: asb_config_file.changed
+  - name: rollout broker
+    shell: "{{ oc_cmd }} rollout latest asb"
+    when: asb_config_file.changed

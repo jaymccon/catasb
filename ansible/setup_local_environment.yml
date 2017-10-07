@@ -15,6 +15,7 @@
   roles:
     - "{{ cluster }}_setup"
     - { role: ansible_service_broker_setup, when: not broker_ci }
+    - { role: "aws_apb_setup", when: create_aws_user }
   post_tasks:
     - set_fact:
         msg: |

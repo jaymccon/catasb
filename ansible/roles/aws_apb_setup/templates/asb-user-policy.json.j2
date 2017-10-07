@@ -1,0 +1,62 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:CancelUpdateStack",
+                "cloudformation:ContinueUpdateRollback",
+                "cloudformation:CreateStack",
+                "cloudformation:CreateUploadBucket",
+                "cloudformation:DeleteStack",
+                "cloudformation:DescribeAccountLimits",
+                "cloudformation:DescribeStackEvents",
+                "cloudformation:DescribeStackResource",
+                "cloudformation:DescribeStackResources",
+                "cloudformation:DescribeStacks",
+                "cloudformation:GetStackPolicy",
+                "cloudformation:ListStackResources",
+                "cloudformation:ListStacks",
+                "cloudformation:SetStackPolicy",
+                "cloudformation:UpdateStack",
+                "iam:AddUserToGroup",
+                "iam:AttachUserPolicy",
+                "iam:CreateAccessKey",
+                "iam:CreatePolicy",
+                "iam:CreatePolicyVersion",
+                "iam:CreateUser",
+                "iam:DeleteAccessKey",
+                "iam:DeletePolicy",
+                "iam:DeletePolicyVersion",
+                "iam:DeleteRole",
+                "iam:DeleteUser",
+                "iam:DeleteUserPolicy",
+                "iam:DetachUserPolicy",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion",
+                "iam:GetUser",
+                "iam:GetUserPolicy",
+                "iam:ListAccessKeys",
+                "iam:ListPolicies",
+                "iam:ListPolicyVersions",
+                "iam:ListUserPolicies",
+                "iam:ListUsers",
+                "iam:PutUserPolicy",
+                "iam:RemoveUserFromGroup",
+                "iam:UpdateUser"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "{{ cloudformation_stack_role.iam_role.arn }}"
+            ]
+        }
+    ]
+}

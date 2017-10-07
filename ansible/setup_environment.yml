@@ -39,6 +39,7 @@
     - openshift_setup
     - env_hacks
     - ansible_service_broker_setup
+    - { role: "aws_apb_setup", when: create_aws_user }
   post_tasks:
     - set_fact:
         msg: |
