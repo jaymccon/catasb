@@ -33,7 +33,8 @@
   roles:
     - { role: ssl_setup, when: use_ssl == True }
     - { role: "{{ cluster }}_setup", reset_cluster: True }
-    - ansible_service_broker_setup
+    - { role: ansible_service_broker_setup, when: deploy_asb == True}
+    - { role: helios_broker_setup, when: deploy_helios == True}
     - { role: "aws_apb_setup", when: create_aws_user }
   post_tasks:
     - set_fact:

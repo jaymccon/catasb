@@ -14,7 +14,8 @@
       private: no
   roles:
     - "{{ cluster }}_setup"
-    - { role: ansible_service_broker_setup, when: not broker_ci }
+    - { role: ansible_service_broker_setup, when: (not broker_ci) and (deploy_asb == True)}
+    - { role: helios_broker_setup, when: (not broker_ci) and (deploy_helios == True)}
     - { role: "aws_apb_setup", when: create_aws_user }
   post_tasks:
     - set_fact:
