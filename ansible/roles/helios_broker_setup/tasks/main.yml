@@ -1,10 +1,22 @@
 ---
   - debug: var=helios_dockerhub_org
 
+  - set_fact:
+      oc_tools_dir: /usr/bin
+    when: ec2_install
+
+  - set_fact:
+      oc_tools_dir: "{{ ansible_env.HOME }}/bin"
+    when: not ec2_install
+
+  - set_fact:
+      oc_cmd: "{{ oc_tools_dir }}/oc"
+
   - name: Download the Helios Broker Template File to "{{ helios_broker_template_dir }}/{{ helios_asb_template_filename }}"
     get_url:
       url: "{{ helios_asb_template_s3_url }}"
       dest: "{{ helios_broker_template_dir }}/{{ helios_asb_template_filename }}"
+      force: True
 
   # Verify that the template file 'helios_asb_template_filename' exists
   - stat:
@@ -64,14 +76,14 @@
     set_fact:
       broker_enable_basic_auth: true
     when: openshift_client_version == '3.6'
-  #####
-  # Remember that 'rcm' builds are using an older branch of the broker
-  # Some features in the deployment template may not be available, such as
-  #     REGISTRY_NAME
-  # Goal is to build up a common command, then modify it as needed for newer
-  # features.
-  #####
-  - name: Create command line for processing template
+
+  #################################################################
+  # 'rcm' builds usually use an older branch of the broker
+  # Some features in the deployment template may not be available
+  # If so, do NOT put those commands in this task.
+  # Only use 'rcm' compatible command args here
+  #################################################################
+  - name: Create command line for processing template (rcm compliant)
     set_fact:
       cmd_process_asb_template: >-
         {{ oc_cmd }}
@@ -90,11 +102,6 @@
         -p LAUNCH_APB_ON_BIND={{ broker_launch_apb_on_bind }}
         -p OUTPUT_REQUEST={{ broker_output_request }}
         -p RECOVERY={{ broker_recovery }}
-
-  - name: Modify command if running a non-rcm build to use newer features
-    set_fact:
-      cmd_process_asb_template: >-
-        {{ cmd_process_asb_template }}
         -p ROUTING_SUFFIX={{ openshift_routing_suffix }}
         -p REGISTRY_NAME={{ broker_registry_name }}
         -p ENABLE_BASIC_AUTH={{ broker_enable_basic_auth }}
@@ -106,7 +113,17 @@
         -p AUTO_ESCALATE={{ broker_auto_escalate|bool }}
         {% if broker_kind is defined %}-p BROKER_KIND={{ broker_kind }}{% endif %}
         {% if broker_auth is defined %}-p BROKER_AUTH='{{ broker_auth }}'{% endif %}
-    when: "not rcm"
+
+  ############################################################
+  # Add any commands that aren't compatible with 'rcm here
+  # to use newer features available in newer broker images
+  ############################################################
+  #- name: Modify command if running a non-rcm build to use newer features
+  #  set_fact:
+  #    cmd_process_asb_template: >-
+  #      {{ cmd_process_asb_template }}
+  #      insert new commands that don't work on rcm here
+  #  when: "not rcm"
 
   - name: Update Broker Kind and Auth when using coalmine
     set_fact:
@@ -140,3 +157,10 @@
     register: result_get_route_asb
     retries: 6
     delay: 10
+
+  - set_fact:
+      aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+      aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+
+  - include: create_secrets.yml
+    when: (deploy_helios == True) and (aws_access_key != "" and aws_secret_key != "")

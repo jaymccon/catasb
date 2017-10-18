@@ -88,7 +88,7 @@ oadm_cmd: "{{ oc_client_install_path }}/oadm"
 kubectl_cmd: "{{ oc_client_install_path }}/kubectl"
 
 origin_image_name: docker.io/openshift/origin
-origin_image_tag: v3.6.0
+origin_image_tag: latest
 oc_host_config_dir: /var/lib/origin/openshift.local.config
 
 asb_project: ansible-service-broker
@@ -119,6 +119,9 @@ broker_auto_escalate: true
 broker_image_name: docker.io/ansibleplaybookbundle/origin-ansible-service-broker
 broker_tag: "latest"
 broker_image: "{{ broker_image_name }}:{{ broker_tag }}"
+# Used to determine if the APB namespace should be kept
+broker_keep_namespace: false
+broker_keep_namespace_on_error: true
 
 # Helios Broker 
 deploy_asb: True
@@ -142,7 +145,8 @@ helios_local_target_asb_template_processed: /tmp/deploy-helios-broker.template.y
 helios_parameters_file: "/tmp/parameters.yml"
 create_broker_secret_file_url: "https://s3.amazonaws.com/heliosbroker/scripts/create_broker_secret.py"
 create_broker_secret_script: "/tmp/create_broker_secret.py"
-
+refresh_broker_resoure_file_url: "https://s3.amazonaws.com/heliosbroker/scripts/refresh_broker_resource.py"
+refresh_broker_resoure_script: "/tmp/refresh_broker_resoure.py"
 
 etcd_tag: "latest"
 etcd_image_name: "quay.io/coreos/etcd"
